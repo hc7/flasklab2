@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.windows": {
+        "PYTHONPATH": "~/tusur/lib/python3.13/site-packages:${env:PYTHONPATH}",
+        "PATH": "~/tusur/bin:${env:PATH}"
+    }
+}
