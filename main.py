@@ -12,14 +12,15 @@ class MainClass(Resource):
         return {"status": "Posted new data"}
 
 # подключение API из другого файла
-from part.part import api as partns1
-api.add_namespace(partns1)
+# from part.part import api as partns1
+# api.add_namespace(partns1)
 from part.parttmpl import api as partns2
 from part.parttmpl import templ as templ
 api.add_namespace(partns2)
 app.register_blueprint(templ,url_prefix='/templ')
-from part.list import name_space1 as listns1
-api.add_namespace(listns1)
+
+# from part.list import name_space1 as listns1
+# api.add_namespace(listns1)
 
 from part.list_db import name_space1 as listdbns1
 api.add_namespace(listdbns1)

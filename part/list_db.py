@@ -5,7 +5,72 @@ import logging
 
 name_space1 = Namespace('list_db', description='List API')
 
-logger = logging.getLogger('gunicorn.error')
+def check_gunicorn_logger():
+    """Check if gunicorn.error logger is available"""
+    try:
+        gunicorn_logger = logging.getLogger('gunicorn.error')
+        
+        # Check if logger exists and has handlers
+        if gunicorn_logger.handlers:
+            print("Gunicorn logger found and has handlers")
+            print(f"Logger level: {gunicorn_logger.level}")
+            print(f"Number of handlers: {len(gunicorn_logger.handlers)}")
+            return True
+        else:
+            print("Gunicorn logger exists but has no handlers")
+            return False
+            
+    except Exception as e:
+        print(f"Error checking gunicorn logger: {e}")
+        return False
+
+import logging
+import logging.handlers
+import sys
+
+def setup_logger(name='myapp', log_file='app.log', level=logging.INFO):
+    """Set up a custom logger"""
+    
+    # Create logger
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    
+    # Prevent duplicate handlers
+    if logger.handlers:
+        return logger
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        '[%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S %z'
+    )
+    
+    # Console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    
+    # File handler (optional)
+    if log_file:
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_file,
+            maxBytes=10485760,  # 10MB
+            backupCount=5
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    
+    return logger
+
+
+# Usage
+if check_gunicorn_logger():
+    logger = logging.getLogger('gunicorn.error')
+else:
+    # Fallback to custom logger
+    logger = setup_logger('myapp', 'app.log')
+
+    #logger = logging.getLogger('myapp')
 
 # Content of items.json will look like:
 """
@@ -82,11 +147,6 @@ def abort_if_todo_doesnt_exist(id):
     if id not in ITEMS:
         name_space1.abort(404, "Item {} doesn't exist".format(id))
 
-# parser = name_space1.parser()
-# parser.add_argument(
-#     "id", type=str, required=True, help="The item details", location="form"
-# )
-
 add_parser = name_space1.parser()
 add_parser.add_argument(
     "new_id", type=int, required=False, help="The item details"
@@ -122,7 +182,7 @@ def get_next_id():
 
 @name_space1.route("/<string:id>")
 @name_space1.doc(responses={404: "Item not found"}, params={"id": "The Item ID"})
-class Todo(Resource):
+class MakeUp(Resource):
     """Show a single item and lets you delete them"""
 
     @name_space1.doc(description="id should be in {0}".format(", ".join(ITEMS.keys())))
@@ -130,7 +190,7 @@ class Todo(Resource):
     def get(self, id):
         """Fetch a given resource"""
         abort_if_todo_doesnt_exist(id)
-        logger.info(f" {ITEMS[id]}")
+        logger.info(f"get {ITEMS[id]}")
         return ITEMS[id]
 
     @name_space1.doc(responses={204: "Item deleted"})
@@ -165,7 +225,7 @@ class Todo(Resource):
             new_price = args["price"] if args["price"] else 1.0
 
         item = {"desc": new_desc, "vendor" : new_vendor, "price" : new_price, "quantity" : new_quantity}
-        logger.info(f" {add_id} {item}")
+        logger.info(f"put {add_id} {item}")
         ITEMS[add_id] = item
         save_items()
         return item
@@ -189,14 +249,13 @@ sort_revers = {'desc':False,'rdesc':True,'vendor':False,'rvendor':True,'price':F
 
 
 @name_space1.route("/op")
-class MakeUp(Resource):
+class SortUp(Resource):
     @name_space1.doc("")
-    # маршалинг данных в соответствии с моделью minmax
+    # маршалинг данных в соответствии с моделью 
     @name_space1.expect(reqop)
     @name_space1.marshal_with(listed_item)
     def get(self):
-        """Получение значения из базы"""
-        # global allarray
+        """Obtain data base values"""
         args = reqop.parse_args()
         if args["id"]:
             abort_if_todo_doesnt_exist(args["id"])
@@ -221,15 +280,6 @@ class MakeUp(Resource):
                 r = dict(items_list)            
             return [{"id": id, "item": data} for id, data in r.items()]
 
-    # @name_space1.doc(parser=reqop)
-    # @name_space1.marshal_with(listed_item, code=204)
-    # def post(self):
-    #     """Create a todo"""
-    #     args = reqop.parse_args()
-    #     todo_id = "todo%08d" % (len(ITEMS) + 1)
-    #     ITEMS[todo_id] = {"desc": args["desc"], "vendor" : args["vendor"], "price" : args["price"], "quantity" : args["quantity"]}
-    #     return ITEMS[todo_id], 204
-
 reqfun = reqparse.RequestParser()
 
 reqfun.add_argument('desc', type=str, required=False)
@@ -237,9 +287,8 @@ reqfun.add_argument('vendor', type=str, required=False)
 
 @name_space1.route("/calc")
 @name_space1.doc(responses={404: "Item not found"})
-class calc(Resource):
-    # @name_space1.doc("")
-    # маршалинг данных в соответствии с моделью minmax
+class CalcUp(Resource):
+    # маршалинг данных в соответствии с моделью 
     @name_space1.expect(reqfun)
     @name_space1.marshal_with(calculate)
     @name_space1.doc(responses={404: "Item not found"})
@@ -253,8 +302,6 @@ class calc(Resource):
                 r = {id : data for id, data in r.items() if data[c] == args[c]}
                 if not r:
                     name_space1.abort(404, "Item '{}' doesn't exist".format(args[c]))
-                    #return [], 404
-                    #name_space1.abort(204, "Items for {} don't exist".format(args[c]))
         result = {}
         result['quantity_minumum'] = str(min(data['quantity'] for data in r.values()))
         result['quantity_maximum'] = str(max(data['quantity'] for data in r.values()))
