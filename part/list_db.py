@@ -2,6 +2,8 @@ import json
 from flask_restx import Namespace, Resource, fields
 from flask_restx import reqparse
 import logging
+import logging.handlers
+import sys
 
 name_space1 = Namespace('list_db', description='List API')
 
@@ -24,9 +26,7 @@ def check_gunicorn_logger():
         print(f"Error checking gunicorn logger: {e}")
         return False
 
-import logging
-import logging.handlers
-import sys
+
 
 def setup_logger(name='myapp', log_file='app.log', level=logging.INFO):
     """Set up a custom logger"""
@@ -91,6 +91,8 @@ else:
 }
 """
 
+logger.info("list_db starting..")
+
 try:
     # Load from JSON (in your app startup)
     with open('items.json', 'r') as f:
@@ -148,6 +150,7 @@ def abort_if_todo_doesnt_exist(id):
         name_space1.abort(404, "Item {} doesn't exist".format(id))
 
 add_parser = name_space1.parser()
+
 add_parser.add_argument(
     "new_id", type=int, required=False, help="The item details"
 )
@@ -241,10 +244,11 @@ reqop.add_argument('vendor', type=str, required=False)
 reqop.add_argument('price', type=float, required=False)
 reqop.add_argument('quantity', type=int, required=False)
 reqop.add_argument('sort', type=str, required=False)
-reqop.add_argument('evaluate', type=str, required=False)
+# reqop.add_argument('evaluate', type=str, required=False)
 
 column = {'desc','vendor','price','quantity'}
 sort_order = ['desc','rdesc','vendor','rvendor','price','rprice','quantity','rquantity']
+sort_col = {'desc':'desc','rdesc':'desc','vendor':'vendor','rvendor':'vendor','price':'price','rprice':'price','quantity':'quantity','rquantity':'quantity'}
 sort_revers = {'desc':False,'rdesc':True,'vendor':False,'rvendor':True,'price':False,'rprice':True,'quantity':False,'rquantity':True}
 
 
@@ -276,8 +280,8 @@ class SortUp(Resource):
 
                 for s in sort_option:
                     if s in sort_order:
-                        items_list.sort(key=lambda x: x[1][s],reverse=sort_revers[s])  # Secondary sort first
-                r = dict(items_list)            
+                        items_list.sort(key=lambda x: x[1][sort_col[s]],reverse=sort_revers[s])  # Secondary sort first
+                r = dict(items_list)
             return [{"id": id, "item": data} for id, data in r.items()]
 
 reqfun = reqparse.RequestParser()

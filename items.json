@@ -28,5 +28,11 @@
         "vendor": "vendor1",
         "price": 100.0,
         "quantity": 100
+    },
+    "id00000007": {
+        "desc": "computer",
+        "vendor": "IBM",
+        "price": 1024.0,
+        "quantity": 1
     }
 }
