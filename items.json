@@ -1,0 +1,32 @@
+{
+    "id00000002": {
+        "desc": "component2",
+        "vendor": "vendor3",
+        "price": 0.0,
+        "quantity": 1
+    },
+    "id00000003": {
+        "desc": "component1",
+        "vendor": "vendor1",
+        "price": 0.0,
+        "quantity": 1
+    },
+    "id00000004": {
+        "desc": "component2",
+        "vendor": "vendor1",
+        "price": 0.0,
+        "quantity": 1
+    },
+    "id00000005": {
+        "desc": "component4",
+        "vendor": "vendor3",
+        "price": 0.1,
+        "quantity": 2
+    },
+    "id00000006": {
+        "desc": "component4",
+        "vendor": "vendor1",
+        "price": 100.0,
+        "quantity": 100
+    }
+}

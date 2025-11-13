@@ -21,7 +21,7 @@ app.register_blueprint(templ,url_prefix='/templ')
 from part.list import name_space1 as listns1
 api.add_namespace(listns1)
 
-from part.list_db import name_space2 as listdbns1
+from part.list_db import name_space1 as listdbns1
 api.add_namespace(listdbns1)
 
 if __name__ == "__main__":
